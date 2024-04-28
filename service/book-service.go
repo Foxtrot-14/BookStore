@@ -14,9 +14,10 @@ type bookService struct{
 func New() BookService {
 	return &bookService{}
 }
-func (service *bookService) Save(entity.Book) entity.Book {
-
+func (service *bookService) Save(book entity.Book) entity.Book {
+	service.books = append(service.books, book)
+	return book
 }
-func (service *bookService) FindAll(entity.Book) entity.Book {
-	
+func (service *bookService) FindAll() []entity.Book {
+	return service.books
 }
