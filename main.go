@@ -1,21 +1,17 @@
 package main
 
 import (
-	"book/controller"
-	"book/middlewares"
-	"book/service"
+	"Book/app/middlewares"
+	"Book/app/repositories"
+	"Book/app/routes"
 	"database/sql"
 	"fmt"
 	"log"
 	"os"
-
-	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gin-gonic/gin"
 )
-var(
-    bookService service.BookService = service.New()
-    bookController controller.BookController = controller.New(bookService)
-)
+
 func openDB() (*sql.DB, error) {
 	var (
 		host     = "localhost"
@@ -40,22 +36,18 @@ func openDB() (*sql.DB, error) {
 	return db, nil
 }
 
-
-func main() {
-    server := gin.New()
-    server.Use(gin.Recovery(), middlewares.Logger())
-    psqlInfo, err := openDB()
+func main(){
+	const port string = ":8080"
+	r := gin.Default()
+	r.Use(gin.Recovery(), middlewares.Logger())
+	 psqlInfo, err := openDB()
 	if err != nil {
 		log.Printf("error connecting DB: %v", err)
 		return
 	}
-	log.Println("DB connection is successful")
 	defer psqlInfo.Close()
-    server.GET("/books",func (ctx *gin.Context){
-        ctx.JSON(200,bookController.FindAll())
-    })
-    server.POST("/books",func (ctx *gin.Context){
-        ctx.JSON(200,bookController.Save(ctx))
-    })
-    server.Run(":8080")
+	repositories.SetDB(psqlInfo)
+	log.Println("DB connection is successful")
+	routes.SetupRoutes(r)
+	r.Run(port)
 }
